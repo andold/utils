@@ -164,6 +164,29 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		return false;
 	}
 
+	public boolean waitUntilTextNotBlank(By xpath, int milli) {
+		log.info("{} waitUntilTextNotBlank(..., {})", Utility.indentStart(), milli);
+		long started = System.currentTimeMillis();
+
+		while (milli > 0) {
+			try {
+				String text = getText(xpath, 1, "waitUntilTextNotBlank");
+				if (text.isBlank()) {
+					Utility.sleep(PAUSE);
+					milli -= PAUSE;
+					continue;
+				}
+
+				log.info("{} {} waitUntilTextNotBlank(..., {}) - {}", Utility.indentEnd(), true, milli, Utility.toStringPastTimeReadable(started));
+				return true;
+			} catch (Exception e) {
+			}
+		}
+
+		log.info("{} {} waitUntilTextNotBlank(..., {}, 『{}』) - {}", Utility.indentEnd(), false, milli, "marks", Utility.toStringPastTimeReadable(started));
+		return false;
+	}
+
 	public boolean waitUntilTextInclude(By xpath, int milli, String... marks) throws Exception {
 		log.info("{} waitUntilTextInclude(..., {}, 『{}』)", Utility.indentStart(), milli, "marks");
 		long started = System.currentTimeMillis();
