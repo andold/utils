@@ -23,7 +23,8 @@ public class ChromeDriverWrapper extends ChromeDriver {
 	private WebDriverWait wait;
 
 	public static ChromeDriverWrapper defaultChromeDriver(String webdriverPath, String userDataDir) {
-		log.info("webdriverPath {}", webdriverPath);
+		log.info("{} defaultChromeDriver(『{}』, 『{}』)", Utility.indentStart(), webdriverPath, userDataDir);
+		long started = System.currentTimeMillis();
 
 		System.setProperty("webdriver.chrome.driver", webdriverPath);
 		ChromeOptions options = new ChromeOptions();
@@ -46,6 +47,8 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		
 		ChromeDriverWrapper driver = new ChromeDriverWrapper(options);
 		driver.wait = new WebDriverWait(driver, Duration.ofSeconds(8));
+
+		log.info("{} {} defaultChromeDriver(『{}』, 『{}』) - {}", Utility.indentEnd(), "driver", webdriverPath, userDataDir, Utility.toStringPastTimeReadable(started));
 		return driver;
 	}
 
