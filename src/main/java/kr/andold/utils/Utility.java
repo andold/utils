@@ -1279,7 +1279,7 @@ public class Utility {
 		for (int cx = 0; cx < stackTraceElements.length; cx++) {
 			StackTraceElement stackTraceElement = stackTraceElements[cx];
 			String className = stackTraceElement.getClassName();
-			if (className.startsWith("kr.andold.household")) {
+			if (className.startsWith("kr.andold")) {
 				depth++;
 			}
 		}
