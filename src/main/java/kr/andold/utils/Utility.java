@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -122,6 +123,10 @@ public class Utility {
 
 	public static int size(Object[] types) {
 		return (types == null) ? -1 : types.length;
+	}
+
+	public static int size(ConcurrentLinkedDeque<?> queue) {
+		return (queue == null) ? -1 : queue.size();
 	}
 
 	public static Date parseDateTime(String string) {
@@ -1373,6 +1378,12 @@ public class Utility {
 		return lastUpdated.format(DateTimeFormatter.ISO_DATE_TIME);
 	}
 
+	public static void sleep(long ms) {
+		try {
+			Thread.sleep(ms);
+		} catch (InterruptedException e) {
+		}
+	}
 	public static void sleep(int ms) {
 		try {
 			Thread.sleep(ms);
