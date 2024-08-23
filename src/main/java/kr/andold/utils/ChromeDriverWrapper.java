@@ -56,6 +56,23 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		super(options);
 	}
 
+	public boolean setInputValue(By by, String value) {
+		try {
+			WebElement e = findElement(by);
+			if (e == null) {
+				return false;
+			}
+
+			JavascriptExecutor jsExecutor = (JavascriptExecutor)this;
+			jsExecutor.executeScript("arguments[0].value = \"" + value + "\"", e);
+
+			return true;
+		} catch (Exception e) {
+		}
+
+		return false;
+	}
+
 	public WebElement findElement(By xpath, int milli) throws Exception {
 		log.info("{} findElement(..., {})", Utility.indentStart(), milli);
 		long started = System.currentTimeMillis();
