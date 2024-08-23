@@ -590,6 +590,15 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		return sb.toString();
 	}
 
+	public String getText(WebElement element, By by) {
+		try {
+			WebElement result = element.findElement(by);
+			return result.getText();
+		} catch (Exception e) {
+		}
+		return "NaN";
+	}
+
 	public String getAttribute(WebElement e, String attributeName, String prefix) {
 		String lines = e.getAttribute(attributeName);
 		StringBuffer sb = new StringBuffer();

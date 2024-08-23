@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -126,6 +127,10 @@ public class Utility {
 	}
 
 	public static int size(ConcurrentLinkedDeque<?> queue) {
+		return (queue == null) ? -1 : queue.size();
+	}
+
+	public static int size(ConcurrentLinkedQueue<?> queue) {
 		return (queue == null) ? -1 : queue.size();
 	}
 
