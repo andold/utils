@@ -822,6 +822,15 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		return false;
 	}
 
+	public boolean isDisplayed(WebElement element, By by) {
+		try {
+			WebElement result = element.findElement(by);
+			return result.isDisplayed();
+		} catch (Exception e) {
+		}
+		return false;
+	}
+
 	public String innerHtml(By by) {
 		try {
 			WebElement element = findElement(by);
