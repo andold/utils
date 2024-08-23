@@ -41,8 +41,10 @@ import org.jsoup.select.Elements;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
@@ -339,6 +341,20 @@ public class Utility {
 		}
 
 		return list;
+	}
+	public static <T> T parseJsonLine(String line, Class<T> classParameter) {
+		try {
+			ObjectMapper objectMapper = new ObjectMapper();
+			objectMapper.setSerializationInclusion(Include.NON_NULL);
+			objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+			objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+			T t = objectMapper.readValue(line, classParameter);
+			return t;
+		} catch (JsonMappingException e) {
+		} catch (JsonProcessingException e) {
+		} catch (IOException e) {
+		}
+		return null;
 	}
 
 	private static String scanClassPath(String filename) {
