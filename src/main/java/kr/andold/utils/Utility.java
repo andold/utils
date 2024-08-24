@@ -1,10 +1,12 @@
 package kr.andold.utils;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -1097,6 +1099,21 @@ public class Utility {
 
 		log.info("{} 『{}』 readClassPathExcelFile(『{}』)", Utility.indentEnd(), null, filename);
 		return null;
+	}
+
+	public static void write(String filename, String content) {
+		try {
+			File file = new File(filename);
+			if (!file.exists()) {
+				file.createNewFile();
+			}
+			FileWriter fw = new FileWriter(file);
+			BufferedWriter writer = new BufferedWriter(fw);
+			writer.write(content);
+			writer.close();
+		} catch (IOException e) {
+			log.error("{} IOException:: {}", Utility.indentMiddle(), e.getLocalizedMessage(), e);
+		}
 	}
 
 	public static String repeat(String word, int count) {
