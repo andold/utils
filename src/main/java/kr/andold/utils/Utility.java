@@ -1060,7 +1060,7 @@ public class Utility {
 		long started = System.currentTimeMillis();
 
 		String javaClassPath = System.getProperty("java.class.path");
-		String[] listJavaClassPath = javaClassPath.split("[;]");
+		String[] listJavaClassPath = javaClassPath.split("[:;]");
 
 		for (int cx = 0; cx < listJavaClassPath.length; cx++) {
 			String fullPath = String.format("%s/%s", listJavaClassPath[cx], filename);
@@ -1082,7 +1082,7 @@ public class Utility {
 	public static String readClassPathExcelFile(String filename) {
 		log.info("{} readClassPathExcelFile(『{}』)", Utility.indentStart(), filename);
 		String javaClassPath = System.getProperty("java.class.path");
-		String[] listJavaClassPath = javaClassPath.split("[;]");
+		String[] listJavaClassPath = javaClassPath.split("[:;]");
 
 		for (int cx = 0; cx < listJavaClassPath.length; cx++) {
 			String fullPath = String.format("%s/%s", listJavaClassPath[cx], filename);
