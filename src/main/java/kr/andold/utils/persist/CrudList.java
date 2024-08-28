@@ -33,4 +33,19 @@ public class CrudList<Y> {
 		return String.format("CrudList(creates: #%d, duplicates: #%d, updates: #%d, removes: #%d)", Utility.size(creates), Utility.size(duplicates), Utility.size(updates), Utility.size(removes));
 	}
 
+	public void add(CrudList<Y> crud) {
+		this.creates.addAll(crud.getCreates());
+		this.duplicates.addAll(crud.getDuplicates());
+		this.updates.addAll(crud.getUpdates());
+		this.removes.addAll(crud.getRemoves());
+	}
+
+	public boolean isEmpty() {
+		return (creates == null || creates.isEmpty())
+				&& (duplicates == null || duplicates.isEmpty())
+				&& (updates == null || updates.isEmpty())
+				&& (removes == null || removes.isEmpty())
+				;
+	}
+
 }
