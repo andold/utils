@@ -2,6 +2,7 @@ package kr.andold.utils;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
@@ -145,6 +146,21 @@ public class ChromeDriverWrapper extends ChromeDriver {
 			timeout -= PAUSE;
 		}
 		return null;
+	}
+
+	public boolean waitUntilTextMatch(By xpath, String pattern) {
+		log.info("{} waitUntilTextMatch(..., 『{}』)", Utility.indentStart(), pattern);
+		long started = System.currentTimeMillis();
+
+		try {
+			wait.until(ExpectedConditions.textMatches(xpath, Pattern.compile(pattern)));
+			log.info("{} {} waitUntilTextMatch(..., 『{}』) - {}", Utility.indentEnd(), true, pattern, Utility.toStringPastTimeReadable(started));
+			return true;
+		} catch (Exception e) {
+		}
+
+		log.info("{} {} waitUntilTextMatch(..., 『{}』) - {}", Utility.indentEnd(), false, pattern, Utility.toStringPastTimeReadable(started));
+		return false;
 	}
 
 	public boolean waitUntilTextNotInclude(By xpath, int milli, String... marks) throws Exception {
