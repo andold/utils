@@ -838,6 +838,15 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		this.visibilityOfElementLocated(By.tagName("body"));
 	}
 
+	public boolean isClickable(By by) {
+		try {
+			WebElement element = findElement(by);
+			return element.isDisplayed();
+		} catch (Exception e) {
+		}
+		return false;
+	}
+
 	public boolean isDisplayed(By by) {
 		try {
 			WebElement element = findElement(by);
