@@ -487,6 +487,25 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		}
 		return "NaN";
 	}
+	public String getText(By by, Duration duration) {
+		String result = "NaN";
+
+		try {
+			Duration durationPrevious = manage().timeouts().getImplicitWaitTimeout();
+			manage().timeouts().implicitlyWait(duration);
+
+			try {
+				WebElement element = super.findElement(by);
+				result = element.getText();
+			} catch (Exception e) {
+			}
+
+			manage().timeouts().implicitlyWait(durationPrevious);
+		} catch (Exception e) {
+		}
+
+		return result;
+	}
 
 	public String getText(By by, String defaultValue) {
 		try {
