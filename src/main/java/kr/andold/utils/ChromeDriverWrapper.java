@@ -29,21 +29,19 @@ public class ChromeDriverWrapper extends ChromeDriver {
 
 		System.setProperty("webdriver.chrome.driver", webdriverPath);
 		ChromeOptions options = new ChromeOptions();
-		//	options.addArguments("--headless");
 		options.addArguments("--remote-allow-origins=*");
 		options.addArguments("--incognito");
-		options.addArguments("--enable-gpu");
 		options.addArguments("--verbose");
 		options.addArguments("--window-size=1024,768");
 		options.addArguments(String.format("--user-data-dir=%s", userDataDir));
 
 		//options.addArguments("--start-maximized");
-		options.addArguments("--disable-infobars");
-		options.addArguments("--disable-extensions");
-		options.addArguments("--no-sandbox");
-		options.addArguments("--disable-application-cache");
-		options.addArguments("--disable-gpu");
+		options.addArguments("--disable-blink-features=AutomationControlled");
 		options.addArguments("--disable-dev-shm-usage");
+		options.addArguments("--disable-extensions");
+		options.addArguments("--disable-gpu");
+		options.addArguments("--disable-infobars");
+		options.addArguments("--no-sandbox");
 		options.setPageLoadStrategy(PageLoadStrategy.NONE);
 		
 		ChromeDriverWrapper driver = new ChromeDriverWrapper(options);
@@ -53,8 +51,13 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		return driver;
 	}
 
+	public ChromeDriverWrapper() {
+		super();
+		this.wait = new WebDriverWait(this, Duration.ofSeconds(8));
+	}
 	public ChromeDriverWrapper(ChromeOptions options) {
 		super(options);
+		this.wait = new WebDriverWait(this, Duration.ofSeconds(8));
 	}
 
 	public boolean setInputValue(By by, String value) {
