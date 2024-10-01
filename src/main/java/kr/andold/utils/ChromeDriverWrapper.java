@@ -1,6 +1,7 @@
 package kr.andold.utils;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -31,14 +32,13 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		ChromeOptions options = new ChromeOptions();
 		options.addArguments("--remote-allow-origins=*");
 		options.addArguments("--incognito");
-		options.addArguments("--verbose");
 		options.addArguments("--window-size=1024,768");
 		options.addArguments(String.format("--user-data-dir=%s", userDataDir));
 
 		//options.addArguments("--start-maximized");
 		options.addArguments("--disable-blink-features=AutomationControlled");
 		options.addArguments("--disable-dev-shm-usage");
-		options.addArguments("--disable-extensions");
+		//options.addArguments("--disable-extensions");
 		options.addArguments("--disable-gpu");
 		options.addArguments("--disable-infobars");
 		options.addArguments("--no-sandbox");
@@ -320,6 +320,7 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		return false;
 	}
 
+	@Deprecated
 	public List<WebElement> findElements(By xpath, int milli) throws Exception {
 		List<WebElement> elements = null;
 		while (milli > 0) {
@@ -334,6 +335,25 @@ public class ChromeDriverWrapper extends ChromeDriver {
 			milli -= PAUSE;
 		}
 		return elements;
+	}
+
+	public List<WebElement> findElements(By by, Duration duration) {
+		List<WebElement> result = new ArrayList<>();
+
+		try {
+			Duration durationPrevious = manage().timeouts().getImplicitWaitTimeout();
+			this.manage().timeouts().implicitlyWait(duration);
+
+			try {
+				result = findElements(by);
+			} catch (Exception e) {
+			}
+
+			manage().timeouts().implicitlyWait(durationPrevious);
+		} catch (Exception e) {
+		}
+
+		return result;
 	}
 
 	public void clear(By xpath) {
