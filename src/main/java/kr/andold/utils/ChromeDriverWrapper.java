@@ -77,6 +77,7 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		return false;
 	}
 
+	@Deprecated
 	public WebElement findElement(By xpath, int milli) throws Exception {
 		log.info("{} findElement(..., {})", Utility.indentStart(), milli);
 		long started = System.currentTimeMillis();
@@ -96,6 +97,31 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		}
 
 		log.info("{} {} findElement(..., {}) - {}", Utility.indentEnd(), "FAILURE", milli, Utility.toStringPastTimeReadable(started));
+		throw previous;
+	}
+
+	public WebElement findElement(By by, Duration duration) throws Exception {
+		Exception previous = null;
+
+		try {
+			WebElement result = null;
+			Duration durationPrevious = manage().timeouts().getImplicitWaitTimeout();
+			manage().timeouts().implicitlyWait(duration);
+
+			try {
+				result = findElement(by);
+			} catch (Exception e) {
+				previous = e;
+			}
+
+			manage().timeouts().implicitlyWait(durationPrevious);
+			if (previous == null) {
+				return result;
+			}
+		} catch (Exception e) {
+			previous = e;
+		}
+
 		throw previous;
 	}
 
@@ -892,6 +918,15 @@ public class ChromeDriverWrapper extends ChromeDriver {
 	public boolean isDisplayed(By by) {
 		try {
 			WebElement element = findElement(by);
+			return element.isDisplayed();
+		} catch (Exception e) {
+		}
+		return false;
+	}
+
+	public boolean isDisplayed(By by, Duration duration) {
+		try {
+			WebElement element = findElement(by, duration);
 			return element.isDisplayed();
 		} catch (Exception e) {
 		}
