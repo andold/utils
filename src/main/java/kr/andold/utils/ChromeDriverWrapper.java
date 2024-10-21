@@ -777,6 +777,18 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		}
 		return false;
 	}
+	public boolean frameToBeAvailableAndSwitchToIt(String frame, Duration duration, boolean showException) {
+		try {
+			WebDriverWait wait = new WebDriverWait(this, duration);
+			wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(frame));
+			return true;
+		} catch (Exception e) {
+			if (showException) {
+				log.warn("Exception:: {}", e.getLocalizedMessage(), e);
+			}
+		}
+		return false;
+	}
 
 	public boolean visibilityOfElementLocated(By by, Duration duration) {
 		for (;;) {
