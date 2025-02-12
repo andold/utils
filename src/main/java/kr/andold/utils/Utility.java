@@ -295,6 +295,20 @@ public class Utility {
 
 		return 0.0;
 	}
+
+	public static Float parseFloat(String string, Float defaultValue) {
+		if (string == null) {
+			return defaultValue;
+		}
+
+		try {
+			return Float.parseFloat(string);
+		} catch (Exception e) {
+		}
+
+		return defaultValue;
+	}
+
 	public static <T> List<T> parseJsonLines(String filename, Class<T> classParameter, int max) {
 		long started = System.currentTimeMillis();
 		List<T> list = new ArrayList<T>();
@@ -1406,6 +1420,20 @@ public class Utility {
 		}
 
 		return (before.strip().contains(after.strip())) ? 1 : -1;
+	}
+
+	public static boolean isNullAll(Object... args) {
+		if (args == null || args.length == 0) {
+			return true;
+		}
+		
+		for (Object arg: args) {
+			if (arg != null) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	public static boolean isSameDay(Date date1, Date date2) {
