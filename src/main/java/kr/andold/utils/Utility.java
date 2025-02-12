@@ -441,6 +441,9 @@ public class Utility {
 			objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 			objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 			objectMapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
+//			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS ZZZ");
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+			objectMapper.setDateFormat(dateFormat);
 			return objectMapper.writeValueAsString(object);
 		} catch (Exception e) {
 			return e.getMessage();
@@ -787,6 +790,29 @@ public class Utility {
 		}
 
 		return left.compareTo(right);
+	}
+
+	public static int compareFloat(Float left, Float right, Float epsilon) {
+		if (left == null && right == null) {
+			return 0;
+		}
+		if (left == null) {
+			return -1;
+		}
+		if (right == null) {
+			return 1;
+		}
+		
+		Float delta = Math.abs(left - right);
+		if (delta < epsilon) {
+			return 0;
+		}
+		
+		if (delta < 0) {
+			return -1;
+		}
+
+		return 1;
 	}
 
 	public static boolean equals(Date left, Date right, long tolerance) {
@@ -1234,6 +1260,14 @@ public class Utility {
 
 		return min;
 	}
+	public static ZonedDateTime min(ZonedDateTime zdt, Date date) {
+		ZonedDateTime right = ZonedDateTime.ofInstant(date.toInstant(), Utility.ZONE_ID_KST);
+		if (zdt.isBefore(right)) {
+			return zdt;
+		}
+		return right;
+	}
+
 
 	public static int max(int... args) {
 		if (args == null || args.length == 0) {
