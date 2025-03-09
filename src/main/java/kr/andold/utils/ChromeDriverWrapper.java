@@ -682,6 +682,23 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		}
 		return "NaN";
 	}
+	public String getText(WebElement element, By by, Duration duration) {
+		String result = "NaN";
+		try {
+			Duration durationPrevious = manage().timeouts().getImplicitWaitTimeout();
+			manage().timeouts().implicitlyWait(duration);
+
+			try {
+				result = element.findElement(by).getText();
+			} catch (Exception e) {
+			}
+
+			manage().timeouts().implicitlyWait(durationPrevious);
+		} catch (Exception e) {
+		}
+
+		return result;
+	}
 
 	public String getAttribute(WebElement e, String attributeName, String prefix) {
 		String lines = e.getAttribute(attributeName);
@@ -906,6 +923,17 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		}
 		return false;
 	}
+	public boolean numberOfElementsToBeMoreThan(By by, int size, Duration duration) {
+		try {
+			WebDriverWait wait = new WebDriverWait(this, duration);
+			wait.until(ExpectedConditions.numberOfElementsToBeMoreThan(by, size));
+			return true;
+		} catch (Exception e) {
+			log.warn("Exception:: {}", e.getLocalizedMessage(), e);
+		}
+
+		return false;
+	}
 
 	public void refresh() {
 		Window window = manage().window();
@@ -952,6 +980,23 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		} catch (Exception e) {
 		}
 		return false;
+	}
+	public boolean isDisplayed(WebElement element, By by, Duration duration) {
+		boolean result = false;
+		try {
+			Duration durationPrevious = manage().timeouts().getImplicitWaitTimeout();
+			manage().timeouts().implicitlyWait(duration);
+
+			try {
+				result = element.findElement(by).isDisplayed();
+			} catch (Exception e) {
+			}
+
+			manage().timeouts().implicitlyWait(durationPrevious);
+		} catch (Exception e) {
+		}
+
+		return result;
 	}
 
 	public String innerHtml(By by) {
