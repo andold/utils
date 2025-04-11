@@ -128,7 +128,7 @@ public class ChromeDriverWrapper extends ChromeDriver {
 	public WebElement findElement(By xpath, int milli, String... marks) throws Exception {
 		Exception exception = null;
 		WebElement element = null;
-		while (milli > 0) {
+		while (milli >= 0) {
 			try {
 				element = super.findElement(xpath);
 				String text = element.getText();
@@ -196,7 +196,7 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		log.info("{} waitUntilTextNotInclude(..., {}, 『{}』)", Utility.indentStart(), milli, Utility.ellipsisEscape(marks, 16));
 		long started = System.currentTimeMillis();
 
-		while (milli > 0) {
+		while (milli >= 0) {
 			try {
 				boolean found = false;
 				String text = getText(xpath, 1, "waitUntilTextInclude");
@@ -233,7 +233,7 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		log.info("{} waitUntilTextNotBlank(..., {})", Utility.indentStart(), milli);
 		long started = System.currentTimeMillis();
 
-		while (milli > 0) {
+		while (milli >= 0) {
 			try {
 				String text = getText(xpath, 1, "waitUntilTextNotBlank");
 				if (text.isBlank()) {
@@ -256,7 +256,7 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		log.info("{} waitUntilTextInclude(..., {}, 『{}』)", Utility.indentStart(), milli, "marks");
 		long started = System.currentTimeMillis();
 
-		while (milli > 0) {
+		while (milli >= 0) {
 			try {
 				String text = getText(xpath, 1, "waitUntilTextInclude");
 				for (String mark : marks) {
@@ -277,7 +277,7 @@ public class ChromeDriverWrapper extends ChromeDriver {
 
 	public WebElement findElementIncludeText(By xpath, int milli, String string) throws Exception {
 		Exception exception = null;
-		while (milli > 0) {
+		while (milli >= 0) {
 			try {
 				List<WebElement> elements = super.findElements(xpath);
 				for (WebElement e : elements) {
@@ -303,7 +303,7 @@ public class ChromeDriverWrapper extends ChromeDriver {
 
 	public WebElement findElementIncludeTextAndClass(By xpath, int milli, String string, String clazz) throws Exception {
 		Exception exception = null;
-		while (milli > 0) {
+		while (milli >= 0) {
 			try {
 				List<WebElement> elements = super.findElements(xpath);
 				for (WebElement e : elements) {
@@ -346,10 +346,51 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		return false;
 	}
 
+	public static int compareFloat(Float left, Float right, Float epsilon) {
+		if (left == null && right == null) {
+			return 0;
+		}
+		if (left == null) {
+			return -1;
+		}
+		if (right == null) {
+			return 1;
+		}
+		
+		Float delta = Math.abs(left - right);
+		if (delta < epsilon) {
+			return 0;
+		}
+		
+		if (delta < 0) {
+			return -1;
+		}
+
+		return 1;
+	}
+
+	public Boolean domAttributeToBe(By by, String attribute, String pattern, Duration duration) {
+		log.trace("{} domAttributeToBe(..., 『{}』, 『{}』, ...)", Utility.indentStart(), attribute, pattern);
+		long started = System.currentTimeMillis();
+
+		try {
+			WebElement element = findElement(by, duration);
+			WebDriverWait wait = new WebDriverWait(this, duration);
+			Boolean result = wait.until(ExpectedConditions.domAttributeToBe(element, attribute, pattern));
+
+			log.trace("{} {} domAttributeToBe(..., 『{}』, 『{}』, ...) - {}", Utility.indentEnd(), result, attribute, pattern, Utility.toStringPastTimeReadable(started));
+			return result;
+		} catch (Exception e) {
+		}
+
+		log.trace("{} {} domAttributeToBe(..., 『{}』, 『{}』, ...) - {}", Utility.indentEnd(), false, attribute, pattern, Utility.toStringPastTimeReadable(started));
+		return false;
+	}
+
 	@Deprecated
 	public List<WebElement> findElements(By xpath, int milli) throws Exception {
 		List<WebElement> elements = null;
-		while (milli > 0) {
+		while (milli >= 0) {
 			try {
 				elements = super.findElements(xpath);
 				if (!elements.isEmpty()) {
@@ -410,7 +451,7 @@ public class ChromeDriverWrapper extends ChromeDriver {
 
 	public List<WebElement> findElements(By xpath, String mark, int milli) throws Exception {
 		Exception previous = null;
-		while (milli > 0) {
+		while (milli >= 0) {
 			try {
 				List<WebElement> es = super.findElements(xpath);
 				String text = toString(es);
@@ -436,7 +477,7 @@ public class ChromeDriverWrapper extends ChromeDriver {
 	}
 
 	public boolean isEmpty(By xpath, int milli) {
-		while (milli > 0) {
+		while (milli >= 0) {
 			try {
 				List<WebElement> es = super.findElements(xpath);
 				return es.isEmpty();
@@ -606,7 +647,7 @@ public class ChromeDriverWrapper extends ChromeDriver {
 	}
 
 	public boolean waitUntilIsDisplayed(By xpath, boolean b, int milli) {
-		while (milli > 0) {
+		while (milli >= 0) {
 			try {
 				WebElement e = super.findElement(xpath);
 				if (e.isDisplayed() == b) {
@@ -633,8 +674,24 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		return null;
 	}
 
+	public boolean match(By by, String pattern, Duration duration) {
+		log.trace("{} match(..., 『{}』)", Utility.indentStart(), pattern);
+		long started = System.currentTimeMillis();
+
+		try {
+			boolean result = Pattern.compile(pattern).matcher(getText(by, duration)).find();
+
+			log.trace("{} 『{}』 match(..., 『{}』) - {}", Utility.indentEnd(), result, pattern, Utility.toStringPastTimeReadable(started));
+			return true;
+		} catch (Exception e) {
+		}
+
+		log.trace("{} {} match(..., 『{}』) - {}", Utility.indentEnd(), false, pattern, Utility.toStringPastTimeReadable(started));
+		return false;
+	}
+
 	public boolean waitUntilExist(By xpath, boolean b, int milli) {
-		while (milli > 0) {
+		while (milli >= 0) {
 			try {
 				super.findElement(xpath);
 				if (b) {
@@ -652,7 +709,7 @@ public class ChromeDriverWrapper extends ChromeDriver {
 	}
 
 	public boolean waitUntilNotIncludeTextLast(By xpath, int milli, String previous) {
-		while (milli > 0) {
+		while (milli >= 0) {
 			try {
 				String current = getTextLast(xpath, 1, previous);
 				if (!current.contentEquals(previous)) {
@@ -912,6 +969,15 @@ public class ChromeDriverWrapper extends ChromeDriver {
 			log.warn("Exception:: {}", e.getLocalizedMessage(), e);
 		}
 		return false;
+	}
+
+	public void sendKeys(By by, String path) {
+		try {
+			WebElement element = super.findElement(by);
+			element.sendKeys(path);
+		} catch (Exception e) {
+			log.error("Exception:: {}", e.getLocalizedMessage(), e);
+		}
 	}
 
 	public boolean numberOfElementsToBeMoreThan(By by, int i) {
