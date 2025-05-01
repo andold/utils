@@ -20,8 +20,8 @@ import org.apache.zookeeper.ZooKeeper;
 public class ZookeeperClient implements Watcher {
 	private static final String ZNODE_PREFIX = "c_";
 
-	@Getter private static boolean isMaster = false;
-	@Getter private static String currentZNodeName = "";
+	@Getter private boolean isMaster = false;
+	@Getter private String currentZNodeName = "";
 
 	private ZooKeeper zookeeper;
 	private String connectString;
