@@ -1381,7 +1381,7 @@ public class Utility {
 		depth = max(0, depth - 2);
 		int ea = depth / ARRAY_INDENT.length % ARRAY_INDENT_PREFIX.length;
 		
-		long threadId = Thread.currentThread().getId();
+		long threadId = Thread.currentThread().threadId();
 		return ARRAY_INDENT_THREAD.charAt((int)(threadId % ARRAY_INDENT_THREAD.length())) + ARRAY_INDENT_PREFIX[ea] + ARRAY_INDENT[depth % ARRAY_INDENT.length];
 	}
 	public static String indentStart() {	return indent() + "┍";	}

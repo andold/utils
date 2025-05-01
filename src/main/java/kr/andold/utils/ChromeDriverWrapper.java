@@ -8,7 +8,9 @@ import java.util.regex.Pattern;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.PageLoadStrategy;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.UnhandledAlertException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -58,6 +60,17 @@ public class ChromeDriverWrapper extends ChromeDriver {
 	public ChromeDriverWrapper(ChromeOptions options) {
 		super(options);
 		this.wait = new WebDriverWait(this, Duration.ofSeconds(8));
+	}
+
+	public boolean alertIsPresent(Duration duration) {
+		try {
+			WebDriverWait wait = new WebDriverWait(this, duration);
+			wait.until(ExpectedConditions.alertIsPresent());
+			return true;
+		} catch (TimeoutException e) {
+		}
+
+		return false;
 	}
 
 	public boolean setInputValue(By by, String value) {
@@ -489,9 +502,28 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		return true;
 	}
 
+	public boolean isPresence(By by, Duration duration) {
+		try {
+			WebElement element = findElement(by, duration);
+			return element != null;
+		} catch (Exception e) {
+		}
+		return false;
+	}
+
 	public boolean clickIfExist(By xpath) {
 		try {
 			WebElement e = super.findElement(xpath);
+			e.click();
+			return true;
+		} catch (Exception e) {
+		}
+		return false;
+	}
+
+	public boolean clickIfExist(WebElement element, By by) {
+		try {
+			WebElement e = element.findElement(by);
 			e.click();
 			return true;
 		} catch (Exception e) {
@@ -606,6 +638,7 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		return defaultValue;
 	}
 
+	@Deprecated
 	public String getText(By xpath, int milli, String defaultValue) {
 		long end = System.currentTimeMillis() + milli;
 		List<WebElement> elements = null;
@@ -620,6 +653,26 @@ public class ChromeDriverWrapper extends ChromeDriver {
 			Utility.sleep(PAUSE);
 		} while (System.currentTimeMillis() < end);
 		return defaultValue;
+	}
+
+	public String getText(By by, Duration duration, String defaultValue) {
+		String result = defaultValue;
+
+		try {
+			Duration durationPrevious = manage().timeouts().getImplicitWaitTimeout();
+			manage().timeouts().implicitlyWait(duration);
+
+			try {
+				WebElement element = super.findElement(by);
+				result = element.getText();
+			} catch (Exception e) {
+			}
+
+			manage().timeouts().implicitlyWait(durationPrevious);
+		} catch (Exception e) {
+		}
+
+		return result;
 	}
 
 	public String getTextLast(By xpath, int milli, String value) {
@@ -755,6 +808,16 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		}
 
 		return result;
+	}
+
+	public String getTextEscape(By by, Duration duration) {
+		return Utility.escape(getText(by, duration));
+	}
+	public String getTextEscape(By by, Duration duration, int chars) {
+		return Utility.ellipsisEscape(getText(by, duration), chars);
+	}
+	public String getTextEscape(By by, Duration duration, int left, int right) {
+		return Utility.ellipsisEscape(getText(by, duration), left, right);
 	}
 
 	public String getAttribute(WebElement e, String attributeName, String prefix) {
@@ -975,6 +1038,15 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		try {
 			WebElement element = super.findElement(by);
 			element.sendKeys(path);
+		} catch (Exception e) {
+			log.error("Exception:: {}", e.getLocalizedMessage(), e);
+		}
+	}
+
+	public void sendKeys(By by, Keys keys) {
+		try {
+			WebElement element = super.findElement(by);
+			element.sendKeys(keys);
 		} catch (Exception e) {
 			log.error("Exception:: {}", e.getLocalizedMessage(), e);
 		}
