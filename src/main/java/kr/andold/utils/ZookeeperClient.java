@@ -33,13 +33,21 @@ public class ZookeeperClient implements Watcher {
 		this.connectString = connectString;
 		this.znodeElectPath = znodeElectPath;
 
+		run();
+
+		log.info("{} run(『{}』, 『{}』)", Utility.indentEnd(), connectString, znodeElectPath);
+	}
+
+	private void run() {
+		log.debug("{} run()", Utility.indentStart());
+
 		try {
 			zookeeper = new ZooKeeper(connectString, 3000, this);
 		} catch (IOException e) {
 			log.error("IOException:: {}", e.getMessage(), e);
 		}
 
-		log.info("{} run(『{}』, 『{}』)", Utility.indentEnd(), connectString, znodeElectPath);
+		log.debug("{} run()", Utility.indentEnd());
 	}
 
 	@Override
@@ -69,6 +77,8 @@ public class ZookeeperClient implements Watcher {
 					zookeeper.close();
 					currentZNodeName = "";
 					isMaster = false;
+
+					run();
 				} catch (InterruptedException e) {
 					log.error("InterruptedException:: {}", e.getMessage(), e);
 				} catch (KeeperException e) {
