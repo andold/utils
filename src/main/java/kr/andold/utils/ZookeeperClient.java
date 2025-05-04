@@ -27,6 +27,24 @@ public class ZookeeperClient implements Watcher {
 	private String connectString;
 	private String znodeElectPath;
 
+	public String status(boolean logging) {
+		List<String> children = null;
+		try {
+			children = zookeeper.getChildren(znodeElectPath, false);
+			if (children != null) {
+				Collections.sort(children);
+			}
+		} catch (Exception e) {
+		}
+
+		String result = String.format("『%s』『%b』『%s』", currentZNodeName, isMaster, children);
+		if (logging) {
+			log.info("{} {} status({})", Utility.indentMiddle(), result, logging);
+		}
+
+		return result;
+	}
+
 	public void run(String connectString, String znodeElectPath) {
 		log.info("{} run(『{}』, 『{}』)", Utility.indentStart(), connectString, znodeElectPath);
 
