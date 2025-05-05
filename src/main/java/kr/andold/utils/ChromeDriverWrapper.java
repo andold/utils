@@ -90,6 +90,9 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		return false;
 	}
 
+    /**
+     * @deprecated Use findElement(By by, Duration duration)
+     */
 	@Deprecated
 	public WebElement findElement(By xpath, int milli) throws Exception {
 		log.info("{} findElement(..., {})", Utility.indentStart(), milli);
@@ -400,6 +403,9 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		return false;
 	}
 
+	/**
+     * @deprecated Use findElements(By by, Duration duration)
+     */
 	@Deprecated
 	public List<WebElement> findElements(By xpath, int milli) throws Exception {
 		List<WebElement> elements = null;
@@ -638,6 +644,9 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		return defaultValue;
 	}
 
+    /**
+     * @deprecated Use getText(By by, Duration duration, String defaultValue)
+     */
 	@Deprecated
 	public String getText(By xpath, int milli, String defaultValue) {
 		long end = System.currentTimeMillis() + milli;
