@@ -5,6 +5,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import kr.andold.utils.Utility;
 import lombok.Getter;
@@ -19,13 +20,13 @@ public class JobService {
 	@Getter private static ConcurrentLinkedDeque<JobInterface> queue2 = new ConcurrentLinkedDeque<>();
 	@Getter private static ConcurrentLinkedDeque<JobInterface> queue3 = new ConcurrentLinkedDeque<>();
 
-	public int run() {
+	public STATUS run() {
 		log.trace("{} run()", Utility.indentStart());
 		long started = System.currentTimeMillis();
 
 		if (queue0.peek() != null) {
 			JobInterface job = queue0.poll();
-			int result = run(job);
+			STATUS result = run(job);
 
 			log.trace("{} 『{}/{}/{}/{}』『{}』 run() - {}", Utility.indentEnd()
 					, Utility.size(queue0), Utility.size(queue1), Utility.size(queue2), Utility.size(queue3)
@@ -35,7 +36,7 @@ public class JobService {
 
 		if (queue1.peek() != null) {
 			JobInterface job = queue1.poll();
-			int result = run(job);
+			STATUS result = run(job);
 
 			log.trace("{} 『{}/{}/{}/{}』『{}』 run() - {}", Utility.indentEnd()
 					, Utility.size(queue0), Utility.size(queue1), Utility.size(queue2), Utility.size(queue3)
@@ -45,7 +46,7 @@ public class JobService {
 		
 		if (queue2.peek() != null) {
 			JobInterface job = queue2.poll();
-			int result = run(job);
+			STATUS result = run(job);
 
 			log.trace("{} 『{}/{}/{}/{}』『{}』 run() - {}", Utility.indentEnd()
 					, Utility.size(queue0), Utility.size(queue1), Utility.size(queue2), Utility.size(queue3)
@@ -55,7 +56,7 @@ public class JobService {
 		
 		if (queue3.peek() != null) {
 			JobInterface job = queue3.poll();
-			int result = run(job);
+			STATUS result = run(job);
 
 			log.trace("{} 『{}/{}/{}/{}』『{}』 run() - {}", Utility.indentEnd()
 					, Utility.size(queue0), Utility.size(queue1), Utility.size(queue2), Utility.size(queue3)
@@ -65,17 +66,17 @@ public class JobService {
 		
 		log.trace("{} 『{}/{}/{}/{}』『EMPTY::{}』 run() - {}", Utility.indentEnd()
 				, Utility.size(queue0), Utility.size(queue1), Utility.size(queue2), Utility.size(queue3)
-				, -1, Utility.toStringPastTimeReadable(started));
-		return -1;
+				, STATUS.ALEADY_DONE, Utility.toStringPastTimeReadable(started));
+		return STATUS.ALEADY_DONE;
 	}
 
-	private int run(JobInterface job) {
-		log.trace("{} run({})", Utility.indentStart(), job);
+	private STATUS run(JobInterface job) {
+		log.debug("{} run({})", Utility.indentStart(), job);
 		long started = System.currentTimeMillis();
 
 		if (job == null) {
-			log.trace("{} 『NULL{}』 run({}) - {}", Utility.indentEnd(), -1, job, Utility.toStringPastTimeReadable(started));
-			return -1;
+			log.debug("{} 『NULL:{}』 run({}) - {}", Utility.indentEnd(), STATUS.INVALID, job, Utility.toStringPastTimeReadable(started));
+			return STATUS.INVALID;
 		}
 
 		ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -84,18 +85,33 @@ public class JobService {
 		try {
 	        result = future.get(job.getTimeout(), TimeUnit.SECONDS);
 			executor.shutdown();
+		} catch (TimeoutException e) {
+			log.error("{} run({}) - TimeoutException::{}", Utility.indentMiddle(), job, e.getLocalizedMessage(), e);
+			result = STATUS.FAIL_TIMEOUT_EXCEPTION;
+			future.cancel(true);
+			executor.shutdownNow();
 		} catch (Exception e) {
 			log.error("{} run({}) - Exception::{}", Utility.indentMiddle(), job, e.getLocalizedMessage(), e);
 			future.cancel(true);
 			executor.shutdownNow();
 		}
 
-		log.trace("{} 『{}』 run({}) - {}", Utility.indentEnd(), result, job, Utility.toStringPastTimeReadable(started));
-		return -1;
+		log.debug("{} 『{}』 run({}) - {}", Utility.indentEnd(), result, job, Utility.toStringPastTimeReadable(started));
+		return result;
 	}
 
-	public void status() {
-		log.info("{} 『{}/{}/{}/{}』 status() - {}", Utility.indentMiddle(), Utility.size(queue0), Utility.size(queue1), Utility.size(queue2), Utility.size(queue3), Utility.toStringPastTimeReadable(STARTED));
+	public String status() {
+		String result = String.format("『%d/%d/%d/%d』", Utility.size(queue0), Utility.size(queue1), Utility.size(queue2), Utility.size(queue3));
+
+		log.info("{} {} status() - {}", Utility.indentMiddle(), result, Utility.toStringPastTimeReadable(STARTED));
+		return result;
+	}
+
+	public String status(String prefix) {
+		String result = String.format("『%d/%d/%d/%d』", Utility.size(queue0), Utility.size(queue1), Utility.size(queue2), Utility.size(queue3));
+
+		log.info("{} {} status() - {}", Utility.indentMiddle(), prefix, result, Utility.toStringPastTimeReadable(STARTED));
+		return result;
 	}
 
 }

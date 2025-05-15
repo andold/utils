@@ -6,6 +6,7 @@ public enum STATUS {
 		, FAIL_NO_RESULT("결과없음")
 		, FAIL_NO_DATA("데이터없음")
 		, FAIL_MANY_DATA("데이터여러개")
+		, FAIL_TIMEOUT_EXCEPTION("시간초과")
 	, EXCEPTION("예외")
 	, NOT_SUPPORT("지원안함")
 	, INVALID("무효")
