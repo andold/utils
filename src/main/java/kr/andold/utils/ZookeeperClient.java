@@ -90,18 +90,10 @@ public class ZookeeperClient implements Watcher {
 				isMaster = false;
 				break;
 			case Expired:
-				try {
-					zookeeper.removeWatches(znodeElectPath, this, WatcherType.Persistent, true);
-					zookeeper.close();
-					currentZNodeName = "";
-					isMaster = false;
-
-					run();
-				} catch (InterruptedException e) {
-					log.error("InterruptedException:: {}", e.getMessage(), e);
-				} catch (KeeperException e) {
-					log.error("KeeperException:: {}", e.getMessage(), e);
-				}
+				closeGracefully();
+				currentZNodeName = "";
+				isMaster = false;
+				run();
 				break;
 			case SaslAuthenticated:
 				break;
@@ -136,6 +128,19 @@ public class ZookeeperClient implements Watcher {
 		}
 		
 		log.info("{} process(『{}』) - 『{}:{}』『{}』", Utility.indentEnd(), event, event.getType(), event.getState(), currentZNodeName);
+	}
+
+	private void closeGracefully() {
+		try {
+			zookeeper.removeWatches(znodeElectPath, this, WatcherType.Persistent, true);
+		} catch (Exception e) {
+			log.error("Exception:: {}", e.getMessage(), e);
+		}
+		try {
+			zookeeper.close();
+		} catch (Exception e) {
+			log.error("Exception:: {}", e.getMessage(), e);
+		}
 	}
 
 	private boolean updateMaster() {
