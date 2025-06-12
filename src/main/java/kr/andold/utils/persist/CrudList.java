@@ -19,7 +19,7 @@ public class CrudList<Y> {
 	@Builder.Default private List<Y> updates = new ArrayList<>();
 	@Builder.Default private List<Y> removes = new ArrayList<>();
 
-	CrudList<Y> clear() {
+	public CrudList<Y> clear() {
 		creates = new ArrayList<>();
 		duplicates = new ArrayList<>();
 		updates = new ArrayList<>();
