@@ -2,7 +2,9 @@ package kr.andold.utils;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.openqa.selenium.By;
@@ -193,6 +195,22 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		return null;
 	}
 
+	public boolean waitUntilTextMatch(By xpath, String pattern, Duration duration) {
+		log.info("{} waitUntilTextMatch(..., 『{}』, {})", Utility.indentStart(), pattern, duration);
+		long started = System.currentTimeMillis();
+
+		try {
+			WebDriverWait wait = new WebDriverWait(this, duration);
+			wait.until(ExpectedConditions.textMatches(xpath, Pattern.compile(pattern)));
+			log.info("{} {} waitUntilTextMatch(..., 『{}』, {}) - {}", Utility.indentEnd(), true, pattern, duration, Utility.toStringPastTimeReadable(started));
+			return true;
+		} catch (Exception e) {
+		}
+
+		log.info("{} {} waitUntilTextMatch(..., 『{}』, {}) - {}", Utility.indentEnd(), false, pattern, duration, Utility.toStringPastTimeReadable(started));
+		return false;
+	}
+
 	public boolean waitUntilTextMatch(By xpath, String pattern) {
 		log.info("{} waitUntilTextMatch(..., 『{}』)", Utility.indentStart(), pattern);
 		long started = System.currentTimeMillis();
@@ -204,7 +222,7 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		} catch (Exception e) {
 		}
 
-		log.info("{} {} waitUntilTextMatch(..., 『{}』) - {}", Utility.indentEnd(), false, pattern, Utility.toStringPastTimeReadable(started));
+		log.info("{} {} waitUntilTextMatch(..., 『{}』, {}) - {}", Utility.indentEnd(), false, pattern, Utility.toStringPastTimeReadable(started));
 		return false;
 	}
 
@@ -516,6 +534,22 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		}
 		return false;
 	}
+	//	하나라도 있으면 있는거다.
+	public boolean isPresence(WebElement element, By by, Duration duration) {
+		boolean result = false;
+		Duration backupDuration = super.manage().timeouts().getImplicitWaitTimeout();
+
+		try {
+			super.manage().timeouts().implicitlyWait(duration);
+			WebElement found = element.findElement(by);
+			result = found != null;
+		} catch (Exception e) {
+//			log.error("Exception:: {}", e.getLocalizedMessage(), e);
+		}
+
+		super.manage().timeouts().implicitlyWait(backupDuration);
+		return result;
+	}
 
 	public boolean clickIfExist(By xpath) {
 		try {
@@ -633,6 +667,9 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		}
 
 		return result;
+	}
+	public String getTextEscape(WebElement element, By by, Duration duration) {
+		return Utility.escape(getText(element, by, duration));
 	}
 
 	public String getText(By by, String defaultValue) {
@@ -752,6 +789,24 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		return false;
 	}
 
+	public boolean waitUntilAttributeContains(WebElement element, By by, String attribute, String value, Duration duration) {
+		boolean result = false;
+		Duration backupDuration = super.manage().timeouts().getImplicitWaitTimeout();
+
+		try {
+			WebElement found = element.findElement(by);
+			WebDriverWait wait = new WebDriverWait(this, duration);
+			wait.until(ExpectedConditions.attributeContains(found, attribute, value));
+			result = found != null;
+//			log.info("{} waitUntilAttributeContains(..., 『{}』, 『{}』, ...)", Utility.indentEnd(), attribute, value);
+		} catch (Exception e) {
+//			log.error("Exception:: {}", e.getLocalizedMessage(), e);
+		}
+
+		super.manage().timeouts().implicitlyWait(backupDuration);
+		return result;
+	}
+
 	public boolean waitUntilExist(By xpath, boolean b, int milli) {
 		while (milli >= 0) {
 			try {
@@ -839,6 +894,21 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		}
 		return sb.toString();
 	}
+	public String getAttribute(WebElement element, By by, String attribute, Duration duration) {
+		String result = "";
+		Duration backupDuration = super.manage().timeouts().getImplicitWaitTimeout();
+
+		try {
+			super.manage().timeouts().implicitlyWait(duration);
+			WebElement found = element.findElement(by);
+			result = found.getAttribute(attribute);
+		} catch (Exception e) {
+			log.error("Exception:: {}", e.getLocalizedMessage(), e);
+		}
+
+		super.manage().timeouts().implicitlyWait(backupDuration);
+		return result;
+	}
 
 	public String getAttributeLast(By xpath, String attributeName, int milli, String value) {
 		try {
@@ -851,6 +921,20 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		}
 
 		return value;
+	}
+
+	public Set<String> getNewHandles(Set<String> befores) {
+		Set<String> afters = super.getWindowHandles();
+		Set<String> news = new HashSet<String>();
+		for (String handle : afters) {
+			if (befores.contains(handle)) {
+				continue;
+			}
+			
+			news.add(handle);
+		}
+		
+		return news;
 	}
 
 	public List<WebElement> findElements(WebElement element, By by) {

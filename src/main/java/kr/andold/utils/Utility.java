@@ -74,37 +74,45 @@ public class Utility {
 
 	private static final String LIST_DATE_FORMAT[] = {
 		"EEE, d MMM yyyy HH:mm:ss z"	//	Fri, 26 Jan 2018 06:37:57 GMT
+
 		, "yyyy-MM-dd'T'HH:mm:ss.SSSZ"	//	2012-04-23T04:43:40.000+0000
 		, "yyyy-MM-ddHH:mm:ss"			//	2022-03-0419:13:52
 		, "yyyy-MM-dd HH:mm:ss.SSS"
 		, "yyyy-MM-dd(E) HH:mm:ss"		//	2003-08-26(화) 10:35:28
-		, "yyyy/MM/dd HH:mm:ss[E]"		//	2021/08/16 11:00:53[월]
 		, "yyyy-MM-dd (E) HH:mm"		//	2022-03-11 (금) 18:26 
+		, "yyyy-MM-dd HH:mm"
 		, "yyyy-M-d a h:m:s"			//	2009-10-19 오전 11:30:00
+		, "yyyy-MM-dd"					//	2009-10-19
 		, "yy-MM-dd HH:mm:ss"
+
 		, "yyyy.MM.dd'T'HH:mm:ss"
 		, "yyyy.MM.dd (HH:mm:ss)"		//	2023.03.13 (14:02:18)
 		, "yyyy.MM.dd HH:mm:ss"
 		, "yyyy.MM.dd a h:mm"			//	『2023.04.05』, 『오후』, 『5:57』
+		, "yyyy.MM.dd HH:mm"			//	2023.03.13 16:31
+		, "yyyy.MM.dd"					//	2023.03.13
+		, "yy.MM"						//	22.12
+		, "yyyy. MM. dd. HH:mm"			//	2025. 08. 01. 12:08
+
 		, "yyyy년 MM월 dd일 (E) a h:m"		//	2022년 11월 13일 (일) 오후 2:54  
 		, "yyyy년 M월 d일 (E) a h:m"		//	2023년 4월 5일 (수) 오후 5:57
 		, "yyyy년 MM월 dd일(E) HH시 mm분"	//	2022년 3월 16일(수) 17시 32분
-		, "yyyy-MM-dd HH:mm"
 		, "yyyy년 MM월 dd일 HH:mm"
 		, "yyyy년MM월dd일 HH:mm"
-		, "yyyy.MM.dd HH:mm"
-		, "yyyy.MM.dd"
-		, "yyyy/MM/dd HH:mm"			//	2021/02/14 16:31
-		, "yyyy/MM/dd"					//	2021/02/14
-		, "yyyy-MM-dd"
-		, "yyyyMMdd'T'HHmmssZ"			//	20190419T134908Z
-		, "yyyyMMdd'T'HHmmss"			//	20190419T134908
-		, "yyyyMMdd"					//	20110320
 		, "yyyy년MM월분 dd일"			//  2020년6월분
 		, "yyyy년MM월dd일"
-		, "yy/MM/dd HH:mm"
-		, "yy.MM"						//	22.12
 		, "yyyy년 MM월"					//	20년 1월
+
+		, "yyyy/MM/dd HH:mm:ss[E]"		//	2021/08/16 11:00:53[월]
+		, "yyyy/MM/dd HH:mm"			//	2021/02/14 16:31
+		, "yyyy/MM/dd"					//	2021/02/14
+		, "yy/MM/dd HH:mm"				//	21/02/14 16:31
+
+		, "yyyyMMdd'T'HHmmssZ"			//	20190419T134908Z
+		, "yyyyMMdd'T'HHmmss"			//	20190419T134908
+		, "yyyyMMddHHmmss"				//	20250801120854
+		, "yyyyMMddHHmm"				//	202508011208
+		, "yyyyMMdd"					//	20110320
 	};
 	private static final int SKIP_COUNT_LINE_LOGGING_IN_FILE_READ = 1024 * 64;
 	private static final String INDENT_DEFAULT = "  ";
