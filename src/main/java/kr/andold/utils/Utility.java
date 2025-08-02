@@ -89,10 +89,10 @@ public class Utility {
 		, "yyyy.MM.dd (HH:mm:ss)"		//	2023.03.13 (14:02:18)
 		, "yyyy.MM.dd HH:mm:ss"
 		, "yyyy.MM.dd a h:mm"			//	『2023.04.05』, 『오후』, 『5:57』
+		, "yyyy. MM. dd. HH:mm"			//	2025. 08. 01. 12:08
 		, "yyyy.MM.dd HH:mm"			//	2023.03.13 16:31
 		, "yyyy.MM.dd"					//	2023.03.13
 		, "yy.MM"						//	22.12
-		, "yyyy. MM. dd. HH:mm"			//	2025. 08. 01. 12:08
 
 		, "yyyy년 MM월 dd일 (E) a h:m"		//	2022년 11월 13일 (일) 오후 2:54  
 		, "yyyy년 M월 d일 (E) a h:m"		//	2023년 4월 5일 (수) 오후 5:57
