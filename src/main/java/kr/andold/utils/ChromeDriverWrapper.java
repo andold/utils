@@ -14,6 +14,7 @@ import org.openqa.selenium.Keys;
 import org.openqa.selenium.PageLoadStrategy;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.UnhandledAlertException;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -195,6 +196,20 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		return null;
 	}
 
+	public WebElement findElement(WebElement element, By by, Duration duration) {
+		long milli = duration.getSeconds() * 1000;
+		while (milli >= 0) {
+			try {
+				return element.findElement(by);
+			} catch (Exception e) {
+			}
+
+			Utility.sleep(PAUSE);
+			milli -= PAUSE;
+		}
+		return null;
+	}
+
 	public boolean waitUntilTextMatch(By xpath, String pattern, Duration duration) {
 		log.info("{} waitUntilTextMatch(..., 『{}』, {})", Utility.indentStart(), pattern, duration);
 		long started = System.currentTimeMillis();
@@ -223,6 +238,33 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		}
 
 		log.info("{} {} waitUntilTextMatch(..., 『{}』, {}) - {}", Utility.indentEnd(), false, pattern, Utility.toStringPastTimeReadable(started));
+		return false;
+	}
+
+	public boolean waitUntilTextMatch(WebElement element, By by, String pattern) {
+		log.trace("{} waitUntilTextMatch(..., 『{}』)", Utility.indentStart(), pattern);
+
+		String text = "";
+		Pattern p = Pattern.compile(pattern);
+		Duration duration = manage().timeouts().getImplicitWaitTimeout();
+		long milli = duration.getSeconds() * 1000 + duration.getNano() / 1000;
+		while (milli >= 0) {
+			try {
+				WebElement e = findElement(element, by, Duration.ZERO);
+				text = e.getText();
+				boolean found = p.matcher(text).find();
+				if (found) {
+					log.trace("{} 『{}:{}』waitUntilTextMatch(..., 『{}』)", Utility.indentEnd(), found, text, pattern);
+					return found;
+				}
+			} catch (Exception e) {
+			}
+
+			Utility.sleep(PAUSE);
+			milli -= PAUSE;
+		}
+
+		log.trace("{} 『{}:{}』waitUntilTextMatch(..., 『{}』)", Utility.indentEnd(), false, text, pattern);
 		return false;
 	}
 
@@ -260,6 +302,20 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		}
 
 		log.info("{} {} waitUntilTextNotInclude(..., {}, 『{}』) - {}", Utility.indentEnd(), false, milli, "marks", Utility.toStringPastTimeReadable(started));
+		return false;
+	}
+
+	public boolean waitUntilTextNotInclude(By by, String mark) throws Exception {
+		Duration duration = manage().timeouts().getImplicitWaitTimeout();
+		int milli = (int) (duration.getSeconds() * 1000 + duration.getNano() / 1000);
+		return waitUntilTextNotInclude(by, milli, mark);
+	}
+
+	public boolean waitUntilTextNotInclude(By by, String mark, Duration duration) {
+		try {
+			return waitUntilTextNotInclude(by, (int)duration.getSeconds() * 1000, mark);
+		} catch (Exception e) {
+		}
 		return false;
 	}
 
@@ -306,6 +362,15 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		}
 
 		log.info("{} {} waitUntilTextInclude(..., {}, 『{}』) - {}", Utility.indentEnd(), false, milli, "marks", Utility.toStringPastTimeReadable(started));
+		return false;
+	}
+
+	public boolean waitUntilTextInclude(By by, String mark, Duration duration) {
+		try {
+			return waitUntilTextInclude(by, (int)duration.getSeconds() * 1000, mark);
+		} catch (Exception e) {
+		}
+
 		return false;
 	}
 
@@ -551,6 +616,27 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		return result;
 	}
 
+	public void click(By by, Duration duration) {
+		try {
+			findElement(by, duration).click();
+		} catch (Exception e) {
+		}
+	}
+
+	public void click(By by) {
+		try {
+			findElement(by).click();
+		} catch (Exception e) {
+		}
+	}
+
+	public void click(WebElement first, By by) {
+		try {
+			first.findElement(by).click();
+		} catch (Exception e) {
+		}
+	}
+
 	public boolean clickIfExist(By xpath) {
 		try {
 			WebElement e = super.findElement(xpath);
@@ -672,6 +758,10 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		return Utility.escape(getText(element, by, duration));
 	}
 
+	public String getTextEscape(WebElement element, By by, Duration duration, int left) {
+		return Utility.ellipsisEscape(getText(element, by, duration), left);
+	}
+
 	public String getText(By by, String defaultValue) {
 		try {
 			WebElement element = super.findElement(by);
@@ -760,6 +850,22 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		return false;
 	}
 
+	public boolean waitUntilIsDisplayed(By by, boolean b, Duration duration) {
+		int milli = (int)duration.getSeconds() * 1000;
+		while (milli  >= 0) {
+			try {
+				WebElement e = findElement(by, Duration.ZERO);
+				if (e.isDisplayed() == b) {
+					return true;
+				}
+			} catch (Exception e) {
+			}
+			Utility.sleep(PAUSE);
+			milli -= PAUSE;
+		}
+		return false;
+	}
+
 	public WebElement lastElement(By xpath, int timeout) {
 		try {
 			List<WebElement> es = findElements(xpath, timeout);
@@ -789,6 +895,16 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		return false;
 	}
 
+	public void waitUntilAbsence(By by, Duration duration) {
+		for (int cx = 0, sizex = (int)duration.getSeconds(); cx < sizex; cx++) {
+			if (!isPresence(by, Duration.ZERO)) {
+				return;
+			}
+			
+			Utility.sleep(1000);
+		}
+	}
+
 	public boolean waitUntilAttributeContains(WebElement element, By by, String attribute, String value, Duration duration) {
 		boolean result = false;
 		Duration backupDuration = super.manage().timeouts().getImplicitWaitTimeout();
@@ -807,6 +923,39 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		return result;
 	}
 
+	public boolean waitUntilDisplayed(WebElement element, boolean show) {
+		Duration duration = manage().timeouts().getImplicitWaitTimeout();
+		long milli = duration.getSeconds() * 1000;
+		while (milli  >= 0) {
+			try {
+				if (element.isDisplayed() == show) {
+					return true;
+				}
+			} catch (Exception e) {
+			}
+			Utility.sleep(PAUSE);
+			milli -= PAUSE;
+		}
+		return false;
+	}
+
+	public boolean waitUntilDisplayed(WebElement element, By by, boolean show) {
+		Duration duration = manage().timeouts().getImplicitWaitTimeout();
+		long milli = duration.getSeconds() * 1000;
+		while (milli >= 0) {
+			try {
+				WebElement e = findElement(element, by, Duration.ZERO);
+				if (e.isDisplayed() == show) {
+					return true;
+				}
+			} catch (Exception e) {
+			}
+			Utility.sleep(PAUSE);
+			milli -= PAUSE;
+		}
+		return false;
+	}
+
 	public boolean waitUntilExist(By xpath, boolean b, int milli) {
 		while (milli >= 0) {
 			try {
@@ -823,6 +972,11 @@ public class ChromeDriverWrapper extends ChromeDriver {
 			milli -= PAUSE;
 		}
 		return false;
+	}
+
+	public boolean waitUntilExist(By by, boolean show, Duration duration) {
+		int milli = (int) (duration.getSeconds() * 1000 + duration.getNano() / 1000);
+		return waitUntilExist(by, show, milli);
 	}
 
 	public boolean waitUntilNotIncludeTextLast(By xpath, int milli, String previous) {
@@ -1035,6 +1189,15 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		return false;
 	}
 
+	public WebDriver frame(By by, Duration duration) {
+        try {
+			return switchTo().frame(findElement(by, duration));
+		} catch (Exception e) {
+//			log.warn("Exception:: {}", e.getLocalizedMessage(), e);
+		}
+		return null;
+	}
+
 	public boolean frameToBeAvailableAndSwitchToIt(String frame) {
 		try {
 			wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(frame));
@@ -1127,6 +1290,29 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		return false;
 	}
 
+	public boolean scrollTo(WebElement element) {
+		try {
+			((JavascriptExecutor)this).executeScript("arguments[0].scrollIntoView(true);", element);
+			Actions actions = new Actions(this);
+			actions.moveToElement(element);
+			actions.perform();
+			return true;
+		} catch (Exception e) {
+			log.warn("Exception:: {}", e.getLocalizedMessage(), e);
+		}
+		return false;
+	}
+
+	public boolean scrollTo(WebElement element, By by) {
+		try {
+			WebElement e = element.findElement(by);
+			return scrollTo(e);
+		} catch (Exception e) {
+			log.warn("Exception:: {}", e.getLocalizedMessage(), e);
+		}
+		return false;
+	}
+
 	public void sendKeys(By by, String path) {
 		try {
 			WebElement element = super.findElement(by);
@@ -1160,7 +1346,7 @@ public class ChromeDriverWrapper extends ChromeDriver {
 			wait.until(ExpectedConditions.numberOfElementsToBeMoreThan(by, size));
 			return true;
 		} catch (Exception e) {
-			log.warn("Exception:: {}", e.getLocalizedMessage(), e);
+			//log.warn("Exception:: {}", e.getLocalizedMessage(), e);
 		}
 
 		return false;
