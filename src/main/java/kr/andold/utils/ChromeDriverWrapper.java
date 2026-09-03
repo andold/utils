@@ -565,6 +565,21 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		super.manage().timeouts().implicitlyWait(backupDuration);
 		return result;
 	}
+	public String getDomProperty(WebElement element, By by, String attribute, Duration duration) {
+		String result = "";
+		Duration backupDuration = super.manage().timeouts().getImplicitWaitTimeout();
+
+		try {
+			super.manage().timeouts().implicitlyWait(duration);
+			WebElement found = element.findElement(by);
+			result = found.getDomProperty(attribute);
+		} catch (Exception e) {
+			log.error("Exception:: {}", e.getLocalizedMessage(), e);
+		}
+
+		super.manage().timeouts().implicitlyWait(backupDuration);
+		return result;
+	}
 
 	/**
      * @deprecated Use findElements(By by, Duration duration)
@@ -1132,6 +1147,9 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		}
 		return sb.toString();
 	}
+	/**
+     * @deprecated Use getDomProperty(WebElement element, By by, String attribute, Duration duration)
+     */
 	@Deprecated
 	public String getAttribute(WebElement element, By by, String attribute, Duration duration) {
 		String result = "";
