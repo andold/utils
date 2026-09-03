@@ -22,12 +22,54 @@ import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import lombok.Builder;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ChromeDriverWrapper extends ChromeDriver {
 	private static final int PAUSE = 100;
+	private static final Duration DEFAULT_TIMEOUT_DURATION = Duration.ofSeconds(8);
+	private static final Duration DEFAULT_TIMEOUT_DURATION_LONG = Duration.ofSeconds(60);
 	private WebDriverWait wait;
+
+	@Data
+	@Builder
+	public static class Navigate {
+		public String title;
+
+		public By identifierFrame;
+		public By identifier;
+
+		public By identifierNot;
+
+		public By linkFrame;
+		public By link;
+		public By mouseHover;
+
+		public String url;
+		public By loading;
+		public Navigate expected;
+		
+		@Override
+		public String toString() {
+			String string = new String("{" + title);
+			if (identifier != null) {
+				string += ", id";
+			}
+			if (link != null) {
+				string += ", link";
+			}
+			if (url != null) {
+				string += ", url";
+			}
+			if (expected != null) {
+				string += (", " + expected.title);
+			}
+
+			return string + "}";
+		}
+	}
 
 	public static ChromeDriverWrapper defaultChromeDriver(String webdriverPath, String userDataDir) {
 		log.info("{} defaultChromeDriver(『{}』, 『{}』)", Utility.indentStart(), webdriverPath, userDataDir);
@@ -468,6 +510,10 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		return 1;
 	}
 
+	/**
+     * @deprecated Use domPropertyToBe(By by, String attribute, String pattern, Duration duration)
+     */
+	@Deprecated
 	public Boolean domAttributeToBe(By by, String attribute, String pattern, Duration duration) {
 		log.trace("{} domAttributeToBe(..., 『{}』, 『{}』, ...)", Utility.indentStart(), attribute, pattern);
 		long started = System.currentTimeMillis();
@@ -484,6 +530,40 @@ public class ChromeDriverWrapper extends ChromeDriver {
 
 		log.trace("{} {} domAttributeToBe(..., 『{}』, 『{}』, ...) - {}", Utility.indentEnd(), false, attribute, pattern, Utility.toStringPastTimeReadable(started));
 		return false;
+	}
+
+	public Boolean domPropertyToBe(By by, String attribute, String pattern, Duration duration) {
+		log.trace("{} domPropertyToBe(..., 『{}』, 『{}』, ...)", Utility.indentStart(), attribute, pattern);
+		long started = System.currentTimeMillis();
+
+		try {
+			WebElement element = findElement(by, duration);
+			WebDriverWait wait = new WebDriverWait(this, duration);
+			Boolean result = wait.until(ExpectedConditions.domPropertyToBe(element, attribute, pattern));
+
+			log.trace("{} {} domPropertyToBe(..., 『{}』, 『{}』, ...) - {}", Utility.indentEnd(), result, attribute, pattern, Utility.toStringPastTimeReadable(started));
+			return result;
+		} catch (Exception e) {
+		}
+
+		log.trace("{} {} domPropertyToBe(..., 『{}』, 『{}』, ...) - {}", Utility.indentEnd(), false, attribute, pattern, Utility.toStringPastTimeReadable(started));
+		return false;
+	}
+
+	public String getDomProperty(By by, String attribute, Duration duration) {
+		String result = "";
+		Duration backupDuration = super.manage().timeouts().getImplicitWaitTimeout();
+
+		try {
+			super.manage().timeouts().implicitlyWait(duration);
+			WebElement found = findElement(by);
+			result = found.getDomProperty(attribute);
+		} catch (Exception e) {
+			log.error("Exception:: {}", e.getLocalizedMessage(), e);
+		}
+
+		super.manage().timeouts().implicitlyWait(backupDuration);
+		return result;
 	}
 
 	/**
@@ -1038,6 +1118,10 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		return Utility.ellipsisEscape(getText(by, duration), left, right);
 	}
 
+	/**
+     * @deprecated Use getDomProperty(By by, String attribute, Duration duration)
+     */
+	@Deprecated
 	public String getAttribute(WebElement e, String attributeName, String prefix) {
 		String lines = e.getAttribute(attributeName);
 		StringBuffer sb = new StringBuffer();
@@ -1048,6 +1132,7 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		}
 		return sb.toString();
 	}
+	@Deprecated
 	public String getAttribute(WebElement element, By by, String attribute, Duration duration) {
 		String result = "";
 		Duration backupDuration = super.manage().timeouts().getImplicitWaitTimeout();
@@ -1063,7 +1148,7 @@ public class ChromeDriverWrapper extends ChromeDriver {
 		super.manage().timeouts().implicitlyWait(backupDuration);
 		return result;
 	}
-
+	@Deprecated
 	public String getAttributeLast(By xpath, String attributeName, int milli, String value) {
 		try {
 			List<WebElement> es = findElements(xpath, milli);
@@ -1425,6 +1510,134 @@ public class ChromeDriverWrapper extends ChromeDriver {
 			log.warn("Exception:: {}", e.getLocalizedMessage(), e);
 		}
 		return "";
+	}
+
+	private boolean isIdentified(By identifierFrame, By identifier, By identifierNot) {
+		switchTo().defaultContent();
+		if (identifierFrame != null) {
+			frame(identifierFrame, Duration.ZERO);
+			log.debug("{} isIdentified(..., ...) - 『{}』", Utility.indentMiddle(), getTextEscape(By.xpath("//body"), Duration.ZERO, 32));
+		}
+		if (!isDisplayed(identifier, Duration.ZERO)) {
+			return false;
+		}
+
+		if (identifierNot == null) {
+			return true;
+		}
+
+		switchTo().defaultContent();
+		if (isDisplayed(identifierNot, Duration.ZERO)) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public boolean navigate(Navigate data) {
+		log.debug("{} navigate(..., 『{}』)", Utility.indentStart(), data);
+		if (data == null) {
+			log.debug("{} 『ALREADY {}』 navigate(..., 『{}』", Utility.indentEnd(), true, data);
+			return true;
+		}
+
+		try {
+			log.debug("{} 『id』navigate(..., 『{}』) - 『{}』", Utility.indentMiddle(), data, getText(data.identifier, Duration.ZERO));
+			if (isIdentified(data.identifierFrame, data.identifier, data.identifierNot)) {
+				log.debug("{} 『ALREADY {}』 『id』navigate(..., 『{}』", Utility.indentEnd(), true, data);
+				return true;
+			}
+			log.debug("{} 『id』navigate(..., 『{}』) - 『{}』", Utility.indentMiddle(), data, getText(data.identifier, Duration.ZERO));
+
+			navigate(data.expected);
+
+			if (data.url != null) {
+				log.debug("{} 『url』navigate(..., 『{}』) - 『{}』", Utility.indentMiddle(), data, data.url);
+				get(data.url);
+				log.debug("{} 『url』navigate(..., 『{}』) - 『{}』", Utility.indentMiddle(), data, data.url);
+			}
+
+			if (data.link != null || data.mouseHover != null) {
+				switchTo().defaultContent();
+				if (data.linkFrame != null) {
+					frame(data.linkFrame, Duration.ZERO);
+					log.debug("{} 『linkFrame』navigate(..., 『{}』) - 『{}』", Utility.indentMiddle(), data, Utility.indentMiddle(), getTextEscape(By.xpath("//body"), Duration.ZERO, 32));
+				}
+				log.debug("{} 『link』navigate(..., 『{}』) - 『{}』", Utility.indentMiddle(), data, getText(data.link, Duration.ZERO));
+				log.debug("{} 『mouseHover』navigate(..., 『{}』) - 『{}』", Utility.indentMiddle(), data, getText(data.mouseHover, Duration.ZERO));
+				for (long cx = 0, sizex = DEFAULT_TIMEOUT_DURATION.getSeconds(), max = DEFAULT_TIMEOUT_DURATION_LONG.getSeconds(); cx < sizex; cx++) {
+					if (isIdentified(data.identifierFrame, data.identifier, data.identifierNot)) {
+						break;
+					}
+
+					if (data.loading != null && isDisplayed(data.loading, Duration.ZERO)) {
+						sizex = Math.min(max, sizex + 1);
+						Utility.sleep(1000);
+						continue;
+					}
+					
+					switchTo().defaultContent();
+					if (data.linkFrame != null) {
+						frame(data.linkFrame, Duration.ZERO);
+						log.debug("{} 『linkFrame』navigate(..., 『{}』) - 『{}』", Utility.indentMiddle(), data, Utility.indentMiddle(), getTextEscape(By.xpath("//body"), Duration.ZERO, 32));
+					}
+					if (data.link != null && isDisplayed(data.link, Duration.ZERO)) {
+						break;
+					}
+					if (data.mouseHover != null && isDisplayed(data.mouseHover, Duration.ZERO)) {
+						break;
+					}
+
+					Utility.sleep(1000);
+
+					log.debug("{} 『link::{}/{}』navigate(..., 『{}』) - 『{}』", Utility.indentMiddle(), cx, sizex, data, getText(data.link, Duration.ZERO));
+					log.debug("{} 『mouseHover::{}/{}』navigate(..., 『{}』) - 『{}』", Utility.indentMiddle(), cx, sizex, data, getText(data.mouseHover, Duration.ZERO));
+				}
+
+				switchTo().defaultContent();
+				if (data.linkFrame != null) {
+					frame(data.linkFrame, Duration.ZERO);
+					log.debug("{} 『linkFrame』navigate(..., 『{}』) - 『{}』", Utility.indentMiddle(), data, Utility.indentMiddle(), getTextEscape(By.xpath("//body"), Duration.ZERO, 32));
+				}
+				log.debug("{} 『link』navigate(..., 『{}』) - 『{}』", Utility.indentMiddle(), data, getText(data.link, Duration.ZERO));
+				log.debug("{} 『mouseHover』navigate(..., 『{}』) - 『{}』", Utility.indentMiddle(), data, getText(data.mouseHover, Duration.ZERO));
+
+				log.debug("{} 『link』navigate(..., 『{}』) - 『{}』", Utility.indentMiddle(), data, getText(data.link, Duration.ZERO));
+				if (data.link != null) {
+					click(data.link);
+				}
+				log.debug("{} 『link』navigate(..., 『{}』) - 『{}』", Utility.indentMiddle(), data, getText(data.link, Duration.ZERO));
+				log.debug("{} 『mouseHover』navigate(..., 『{}』) - 『{}』", Utility.indentMiddle(), data, getText(data.mouseHover, Duration.ZERO));
+				if (data.mouseHover != null) {
+					mouseHover(data.mouseHover);
+				}
+				log.debug("{} 『mouseHover』navigate(..., 『{}』) - 『{}』", Utility.indentMiddle(), data, getText(data.mouseHover, Duration.ZERO));
+			}
+
+			log.debug("{} 『wait』navigate(..., 『{}』) - 『{}』", Utility.indentMiddle(), data, getText(data.identifier, Duration.ZERO));
+			for (long cx = 0, sizex = DEFAULT_TIMEOUT_DURATION.getSeconds(); cx < sizex; cx++) {
+				if (isIdentified(data.identifierFrame, data.identifier, data.identifierNot)) {
+					break;
+				}
+
+				if (data.loading != null && isDisplayed(data.loading, Duration.ZERO)) {
+					sizex = Math.min(DEFAULT_TIMEOUT_DURATION_LONG.getSeconds(), sizex + 1);
+				}
+				
+				Utility.sleep(1000);
+
+				log.debug("{} 『wait::{}/{}』navigate(..., 『{}』) - 『{}』", Utility.indentMiddle(), cx, sizex, data, getText(data.identifier, Duration.ZERO));
+			}
+			log.debug("{} 『wait』navigate(..., 『{}』) - 『{}』", Utility.indentMiddle(), data, getText(data.identifier, Duration.ZERO));
+
+			log.debug("{} 『SUCCESS::{}』 navigate(..., 『{}』)", Utility.indentEnd(), true, data);
+			return true;
+		} catch (Exception e) {
+			log.error("Exception:: {}", e.getLocalizedMessage(), e);
+		}
+
+		log.debug("{} 『FAILURE::{}』 navigate(..., 『{}』)", Utility.indentEnd(), false, data);
+		return false;
 	}
 
 }
