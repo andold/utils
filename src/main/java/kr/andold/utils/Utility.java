@@ -13,6 +13,9 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.time.Instant;
@@ -385,18 +388,44 @@ public class Utility {
 	}
 
 	private static String scanClassPath(String filename) {
-		String javaClassPath = System.getProperty("java.class.path");
-		String[] listJavaClassPath = javaClassPath.split("[;]");
+		File file = findClassPathFile(filename);
+		if (file == null) {
+			return null;
+		}
 
-		for (int cx = 0; cx < listJavaClassPath.length; cx++) {
-			String fullPath = String.format("%s/%s", listJavaClassPath[cx], filename);
-			File file = new File(fullPath);
-			if (!file.exists()) {
-				log.trace("{} 존재하지 않음", fullPath);
-				continue;
-			}
+		return file.getPath();
+	}
 
-			return fullPath;
+	//	java.class.path를 직접 자르면 Windows 드라이브 콜론(C:)과 OS별 구분자 차이로 경로가 깨지므로 클래스로더로 찾는다.
+	private static URL findClassPathResource(String filename) {
+		if (filename == null) {
+			return null;
+		}
+
+		String name = filename.startsWith("/") ? filename.substring(1) : filename;
+		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+		if (classLoader == null) {
+			classLoader = Utility.class.getClassLoader();
+		}
+
+		URL url = classLoader.getResource(name);
+		if (url == null) {
+			log.trace("{} {} 존재하지 않음", indentMiddle(), filename);
+		}
+		return url;
+	}
+
+	//	jar 안의 리소스처럼 File로 열 수 없으면 null
+	private static File findClassPathFile(String filename) {
+		URL url = findClassPathResource(filename);
+		if (url == null || !"file".equals(url.getProtocol())) {
+			return null;
+		}
+
+		try {
+			return new File(url.toURI());
+		} catch (URISyntaxException | IllegalArgumentException e) {
+			log.warn("{} {}:: {} - findClassPathFile(『{}』)", indentMiddle(), e.getClass().getSimpleName(), e.getMessage(), filename);
 		}
 
 		return null;
@@ -1107,17 +1136,24 @@ public class Utility {
 		log.info("{} readClassPathFile(『{}』)", Utility.indentStart(), filename);
 		long started = System.currentTimeMillis();
 
-		String javaClassPath = System.getProperty("java.class.path");
-		String[] listJavaClassPath = javaClassPath.split("[:;]");
-
-		for (int cx = 0; cx < listJavaClassPath.length; cx++) {
-			String fullPath = String.format("%s/%s", listJavaClassPath[cx], filename);
-			File file = new File(fullPath);
-			if (!file.exists()) {
-				continue;
+		URL url = findClassPathResource(filename);
+		if (url != null) {
+			File file = findClassPathFile(filename);
+			String string = null;
+			if (file != null) {
+				string = extractStringFromText(file);
+			} else {
+				try {
+					//	jar 연결을 캐시하면 Windows에서 jar 파일이 잠긴 채로 남는다.
+					URLConnection connection = url.openConnection();
+					connection.setUseCaches(false);
+					try (InputStream inputStream = connection.getInputStream()) {
+						string = extractStringFromText(inputStream);
+					}
+				} catch (IOException e) {
+					log.error("{} IOException:: {} - readClassPathFile(『{}』)", Utility.indentMiddle(), e.getMessage(), filename, e);
+				}
 			}
-
-			String string = extractStringFromText(file);
 
 			log.info("{} 『{}』 readClassPathFile(『{}』) - {}", Utility.indentEnd(), toStringJson(string, 32, 32), filename, Utility.toStringPastTimeReadable(started));
 			return string;
@@ -1129,16 +1165,8 @@ public class Utility {
 
 	public static String readClassPathExcelFile(String filename) {
 		log.info("{} readClassPathExcelFile(『{}』)", Utility.indentStart(), filename);
-		String javaClassPath = System.getProperty("java.class.path");
-		String[] listJavaClassPath = javaClassPath.split("[:;]");
-
-		for (int cx = 0; cx < listJavaClassPath.length; cx++) {
-			String fullPath = String.format("%s/%s", listJavaClassPath[cx], filename);
-			File file = new File(fullPath);
-			if (!file.exists()) {
-				continue;
-			}
-
+		File file = findClassPathFile(filename);
+		if (file != null) {
 			String string = extractStringFromExcel(file);
 
 			log.info("{} 『{}』 readClassPathExcelFile(『{}』)", Utility.indentEnd(), toStringJson(string, 32, 32), filename);
