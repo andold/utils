@@ -23,7 +23,6 @@ mvn deploy                                   # GitHub Packages에 배포 (deploy
 ```
 
 - 배포하려면 `~/.m2/settings.xml`에 **personal access token (classic)** 을 사용하는 `github` server 항목이 있어야 합니다. GitHub Packages는 fine-grained 토큰을 받지 않습니다.
-- `pom.xml`에 surefire 플러그인 버전이 지정되어 있지 않습니다. `mvn test`에서 실행된 테스트가 0개로 나오면 기본 surefire 버전이 JUnit 5를 지원하지 못할 만큼 오래된 것입니다.
 - 코드 전반에 Lombok(`@Slf4j`, `@Data`, `@Builder`, `@Getter`)을 사용하며, annotation processor는 `maven-compiler-plugin`에 설정되어 있습니다.
 
 ## 릴리스 절차 (git 이력 기준)
